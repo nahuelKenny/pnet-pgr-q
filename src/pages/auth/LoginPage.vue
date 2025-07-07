@@ -1,23 +1,26 @@
 <template>
-   <LoginBaseComp 
-      :title="currentTitle" 
-      :subtitle="currentSubtitle"
-      :show-title-section="currentComponentType !== 'registro'" 
-      :component-type="currentComponentType"
-      :component-props="currentComponentProps" 
-      :on-submit="handleSubmit" 
-      @forgot-password="handleForgotPassword"
-      @component-switch="handleComponentSwitch" />
+  <LoginBaseComp
+    :title="currentTitle"
+    :subtitle="currentSubtitle"
+    :component-type="currentComponentType"
+    :component-props="currentComponentProps"
+    :on-submit="handleSubmit"
+    :show-title-section="showTitleSection"
+    @forgot-password="handleForgotPassword"
+    @component-switch="handleComponentSwitch"
+    @toggle-title="handleToggleTitle"
+  />
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRouter, useRoute } from "vue-router";
-import { loginAjax, resetPasswordAjax, registerAjax } from "src/api/auth";
+import { useAuthStore } from "src/stores/auth";
 import LoginBaseComp from "src/components/auth/LoginBaseComp.vue";
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 // Component type mapping
 const componentTypeMap = {
@@ -48,8 +51,8 @@ const contentConfig = computed(() => {
       subtitle: 'Completá los datos para ingresar a tu cuenta.'
     },
     registro: {
-      title: 'Completá tus datos',
-      subtitle: 'ingresá los datos para registrarte en la plataforma.'
+      title: 'Crear cuenta',
+      subtitle: 'Completa los datos para crear tu cuenta.'
     },
     blanqueo: {
       title: 'Recuperar contraseña',
@@ -62,29 +65,41 @@ const contentConfig = computed(() => {
 
 const currentTitle = computed(() => contentConfig.value.title);
 const currentSubtitle = computed(() => contentConfig.value.subtitle);
-const currentComponentProps = ref({});
+const currentComponentProps = computed(() => ({
+  isLoading: authStore.isLoading
+}));
 
-// Handle different submission types
+const showTitleSection = ref(true);
+
 const handleSubmit = async (formData) => {
-  const handlers = {
-    login: async (data) => {
-      await loginAjax(data);
-      router.push('/dashboard');
-    },
-    registro: async (data) => {
-      await registerAjax(data);
-      router.push('/login');
-    },
-    blanqueo: async (data) => {
-      await resetPasswordAjax(data);
-      router.push('/login');
-    }
-  };
+  try {
+    const handlers = {
+      login: async (data) => {
+        await authStore.login(data);
+        router.push('/dashboard');
+      },
+      registro: async (data) => {
+        // Handle stepper data structure
+        if (data.step === 1) {
+          await authStore.register(data.data);
+          return;
+        }
+        await authStore.register(data);
+        router.push('/login');
+      },
+      blanqueo: async (data) => {
+        await authStore.resetPassword(data);
+        // Don't redirect here, let the component handle the success/error view
+      }
+    };
 
-  const handler = handlers[currentComponentType.value];
-  if (handler) {
-    // Don't use try-catch here, let the error bubble up to the child component
-    return await handler(formData);
+    const handler = handlers[currentComponentType.value];
+    if (handler) {
+      return await handler(formData);
+    }
+  } catch (error) {
+    // Error is already handled in the store
+    console.error('Auth operation failed:', error);
   }
 };
 
@@ -92,9 +107,7 @@ const handleForgotPassword = () => {
   router.push('/reset-password');
 };
 
-const handleComponentSwitch = (newComponentType, data = {}) => {
-  currentComponentProps.value = data;
-  
+const handleComponentSwitch = (newComponentType) => {
   const routeMap = {
     login: '/login',
     registro: '/register',
@@ -107,8 +120,26 @@ const handleComponentSwitch = (newComponentType, data = {}) => {
   }
 };
 
+// Handle title section toggle from child components
+const handleToggleTitle = (shouldShow) => {
+  showTitleSection.value = shouldShow;
+};
+
 // Watch for route changes
 watch(() => route.path, () => {
-  currentComponentProps.value = {};
+  showTitleSection.value = true; // Reset title visibility on route change
+  authStore.clearError(); // Clear any previous errors
 }, { immediate: true });
+
+// Hide title for registro (stepper) component
+watch(currentComponentType, (newType) => {
+  if (newType === 'registro') {
+    showTitleSection.value = false;
+  } else {
+    showTitleSection.value = true;
+  }
+});
+
+// Initialize auth on component mount
+authStore.initializeAuth();
 </script>

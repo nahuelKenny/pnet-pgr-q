@@ -28,8 +28,8 @@
             type="email"
             lazy-rules
             :rules="[
-              (val) => (val && val.length > 0) ,
-              (val) => /.+@.+\..+/.test(val)
+              (val) => (val && val.length > 0) || 'Email es requerido',
+              (val) => /.+@.+\..+/.test(val) || 'Email inválido'
             ]"
             autocomplete="email"
             :hide-bottom-space="true"
@@ -43,8 +43,8 @@
             label="Nombre *"
             lazy-rules
             :rules="[
-              (val) => (val && val.length > 0),
-              (val) => val.length >= 2
+              (val) => (val && val.length > 0) || 'Nombre es requerido',
+              (val) => val.length >= 2 || 'Nombre debe tener al menos 2 caracteres'
             ]"
             autocomplete="given-name"
             :hide-bottom-space="true"
@@ -58,8 +58,8 @@
             label="Apellido *"
             lazy-rules
             :rules="[
-              (val) => (val && val.length > 0) ,
-              (val) => val.length >= 2 
+              (val) => (val && val.length > 0) || 'Apellido es requerido',
+              (val) => val.length >= 2 || 'Apellido debe tener al menos 2 caracteres'
             ]"
             autocomplete="family-name"
             :hide-bottom-space="true"
@@ -81,7 +81,6 @@
           />
 
           <!-- Validation error message -->
-           <!--
           <div class="validation-container">
             <transition
               enter-active-class="animated slideInDown"
@@ -94,14 +93,20 @@
               </div>
             </transition>
           </div>
-          -->
+
+          <!-- Show error from store -->
+          <div v-if="props.error && !props.isLoading" class="validation-error-message q-mt-md">
+            <q-icon name="error" color="negative" size="sm" class="q-mr-xs" />
+            <span>{{ props.error }}</span>
+          </div>
+
           <q-stepper-navigation>
             <q-btn
               type="submit"
               color="primary"
-              label="Siguiente"
-              :loading="isLoading"
-              :disable="!isStep1Valid || isLoading"
+              :label="props.isLoading ? 'Procesando...' : 'Siguiente'"
+              :loading="props.isLoading"
+              :disable="!isStep1Valid || props.isLoading"
               class="full-width btnRegistro"
             />
           </q-stepper-navigation>
@@ -138,17 +143,19 @@
             @click="step = 1"
             label="Anterior"
             class="q-mr-sm"
+            :disable="props.isLoading"
           />
           <q-btn
             color="primary"
-            @click="step = 3"
-            label="Verificar"
-            :disable="!verificationCode || verificationCode.length < 6"
+            @click="submitStep2"
+            :label="props.isLoading ? 'Verificando...' : 'Verificar'"
+            :loading="props.isLoading"
+            :disable="!verificationCode || verificationCode.length < 6 || props.isLoading"
           />
         </q-stepper-navigation>
       </q-step>
 
-      <!-- Step 3: Acticación -->
+      <!-- Step 3: Activación -->
       <q-step
         :name="3"
         title="Activación"
@@ -167,11 +174,13 @@
             @click="step = 2"
             label="Anterior"
             class="q-mr-sm"
+            :disable="props.isLoading"
           />
           <q-btn
             color="primary"
             @click="goToLogin"
             label="Ir al Login"
+            :disable="props.isLoading"
           />
         </q-stepper-navigation>
       </q-step>
@@ -180,7 +189,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+
+const props = defineProps({
+  isLoading: { type: Boolean, default: false },
+  error: { type: String, default: null }
+});
 
 const emit = defineEmits(['submit', 'switch-component']);
 
@@ -201,9 +215,9 @@ const formData = ref({
 const verificationCode = ref('');
 
 // Loading and validation states
-const isLoading = ref(false);
 const showValidationError = ref(false);
 const validationMessage = ref('');
+const submissionAttempted = ref(false);
 
 // Sector options
 const sectorOptions = [
@@ -228,6 +242,23 @@ const isStep1Valid = computed(() => {
          formData.value.apellido.length >= 2;
 });
 
+// Watch for loading state changes to handle step progression
+watch([() => props.isLoading, () => props.error], ([newLoading, newError]) => {
+  // If we attempted submission and loading just finished
+  if (submissionAttempted.value && !newLoading) {
+    if (!newError) {
+      // Success - move to next step
+      if (step.value === 1) {
+        step.value = 2;
+      } else if (step.value === 2) {
+        step.value = 3;
+      }
+    }
+    // Error is handled by the error display in template
+    submissionAttempted.value = false;
+  }
+});
+
 // Submit step 1
 const submitStep1 = async () => {
   const isValid = await step1Form.value.validate();
@@ -239,25 +270,32 @@ const submitStep1 = async () => {
   }
   
   showValidationError.value = false;
-  isLoading.value = true;
+  submissionAttempted.value = true;
   
-  try {
-    // Emit to parent to handle API call
-    await emit('submit', {
-      step: 1,
-      data: formData.value
-    });
-    
-    // Move to next step on success
-    step.value = 2;
-    showValidationError.value = false;
-  } catch (error) {
-    console.error('Error in step 1:', error);
-    showValidationError.value = true;
-    validationMessage.value = error.message || 'Error al procesar los datos. Inténtalo nuevamente.';
-  } finally {
-    isLoading.value = false;
+  // Emit to parent to handle API call through store
+  // The watcher will handle step progression after the store operation completes
+  emit('submit', {
+    step: 1,
+    data: formData.value
+  });
+};
+
+// Submit step 2 (verification)
+const submitStep2 = async () => {
+  if (!verificationCode.value || verificationCode.value.length < 6) {
+    return;
   }
+  
+  submissionAttempted.value = true;
+  
+  // Emit verification data
+  emit('submit', {
+    step: 2,
+    data: {
+      ...formData.value,
+      verificationCode: verificationCode.value
+    }
+  });
 };
 
 // Go to login
@@ -314,6 +352,18 @@ const goToLogin = () => {
   margin: 0;
 }
 
+h6 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #50504E;
+  margin: 16px 0 8px 0;
+}
+
+p {
+  color: #666;
+  margin-bottom: 8px;
+}
+
 /* Mobile adjustments */
 @media (max-width: 767px) {
   .registro-stepper {
@@ -326,6 +376,10 @@ const goToLogin = () => {
   
   .registro-stepper :deep(.q-stepper__title) {
     font-size: 11px;
+  }
+  
+  .btnRegistro {
+    min-width: 100%;
   }
 }
 </style>
