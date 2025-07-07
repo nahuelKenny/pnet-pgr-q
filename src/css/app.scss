@@ -1,1 +1,25 @@
-// app global css in SCSS form
+@import '@fontsource/encode-sans/400.css'; // Regular
+@import '@fontsource/encode-sans/500.css'; // Medium 
+@import '@fontsource/encode-sans/600.css'; // SemiBold  
+@import '@fontsource/encode-sans/700.css'; // Bold
+
+// Set as default font
+body {
+  font-family: 'Encode Sans', sans-serif;
+}
+button.q-btn.disabled {
+    background-color: #D9D9D9 !important;
+    border: #898887 solid 1px;
+    color: #646363 !important;
+}
+.loginForgotText {
+  color: #50504E;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.loginForgotSection {
+    padding-top: 0;
+    margin-top:0;
+    text-align: left
+}

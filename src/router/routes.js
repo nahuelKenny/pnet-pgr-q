@@ -1,9 +1,33 @@
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import('layouts/AuthLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') }
+      {
+        path: '/login',
+        component: () => import('pages/auth/LoginPage.vue'),
+        meta: { componentType: 'login' }
+      },
+      {
+        path: '/register',
+        component: () => import('pages/auth/LoginPage.vue'),
+        meta: { componentType: 'registro' }
+      },
+      {
+        path: '/reset-password',
+        component: () => import('pages/auth/LoginPage.vue'),
+        meta: { componentType: 'blanqueo' }
+      },
+      {
+        path: '/forgot-password', // alias for reset-password
+        redirect: '/reset-password'
+      },
+      // Query parameter route (optional/fallback)
+      {
+        path: '/auth',
+        component: () => import('pages/auth/LoginPage.vue'),
+        // Will use query parameter: /auth?type=login
+      }
     ]
   },
 
