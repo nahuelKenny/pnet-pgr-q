@@ -1,6 +1,107 @@
 # PNET Frontend - Changelog
 
-## V1.0 Alpha
+## V1.1 Beta - *7/72025*
+
+### Estado de Autenticación con Pinia
+
+#### Implementación del Store
+- **Centralización**: Estado global de autenticación unificado
+- **Persistencia**: Token JWT almacenado en localStorage automáticamente
+- **Reactividad**: Actualizaciones automáticas en todos los componentes
+- **Error Handling**: Manejo centralizado de errores con mensajes user-friendly
+
+#### Estructura del Store (auth.js)
+```javascript
+state: {
+  isLoading: false,    // Estado global de loading
+  user: null,          // Datos del usuario autenticado
+  token: null,         // JWT token
+  error: null          // Mensaje de error actual
+}
+
+getters: {
+  isAuthenticated,     // Verificación de autenticación
+  getLoadingState     // Estado de loading actual
+}
+
+actions: {
+  login(),            // Autenticación de usuario
+  register(),         // Registro de nuevo usuario
+  resetPassword(),    // Recuperación de contraseña
+  logout(),           // Cierre de sesión
+  initializeAuth()    // Inicialización desde localStorage
+}
+```
+
+#### Loading States Implementados
+- **LoginComp**: Botón muestra "Ingresando..." durante proceso
+- **RegistroComp**: Stepper con estados "Procesando..." y "Verificando..."
+- **BlanqueoComp**: Estados para envío de email y validación
+
+#### Flujo de Loading Mejorado
+```
+Click Submit → Store.setLoading(true) → 3s Delay → API Call → Store.setLoading(false)
+     ↓              ↓                     ↓           ↓              ↓
+  Button        Loading Spinner      User Sees     Real API    Button Normal
+  Disable       + Loading Text       Progress      Response    + Results
+```
+
+#### Animaciones de Título
+- **Fade + Slide**: Títulos aparecen desde la derecha con efecto suave
+- **Transición**: Cambio fluido entre diferentes componentes
+- **Responsivo**: Animaciones adaptadas para mobile/desktop
+- **Key Binding**: Reactivo a cambios de título y subtítulo
+
+#### API Integration Pattern
+```javascript
+// En el store
+async login(credentials) {
+  this.setLoading(true)
+  this.clearError()
+  
+  try {
+    await this.sleep(3000)  // Demo delay
+    const response = await loginAjax(credentials)
+    this.user = response.user
+    this.token = response.token
+    localStorage.setItem('auth_token', response.token)
+    return response
+  } catch (error) {
+    this.setError(error.message)
+    throw error
+  } finally {
+    this.setLoading(false)
+  }
+}
+```
+
+#### Mejoras de UX
+- **Feedback Visual**: Loading spinners en todos los botones
+- **Estados Deshabilitados**: Prevención de multiple submits
+- **Manejo de Errores**: Mensajes claros y contextuales
+- **Persistencia**: Sesión mantenida entre refreshes
+- **Timeout Simulation**: 3 segundos de delay para testing UX
+
+#### Patrones Implementados
+- **State Management**: Pinia para estado centralizado
+- **Loading Strategy**: Estados de carga unificados
+- **Error Boundary**: Manejo robusto de errores
+- **Persistence Layer**: localStorage para tokens
+- **Animation System**: Transiciones fluidas entre estados
+
+#### Beneficios Logrados
+- ✅ **Consistencia**: Misma experiencia en todos los componentes
+- ✅ **Performance**: Estado reactivo optimizado
+- ✅ **Debugging**: DevTools integration para desarrollo
+- ✅ **Escalabilidad**: Fácil agregar nuevos flujos de auth
+- ✅ **Mantenibilidad**: Código centralizado y documentado
+
+#### Conclusión
+> La implementación con Pinia proporciona una base sólida para el manejo de autenticación, con estados de loading fluidos y animaciones que mejoran significativamente la experiencia del usuario.
+
+---
+
+## V1.0 Alpha - *24/6/2025*
 
 ### Login - Rutas
 
