@@ -43,7 +43,6 @@ const currentComponentType = computed(() => {
   return componentTypeMap[route.path] || 'login';
 });
 
-// Content configuration based on component type
 const contentConfig = computed(() => {
   const configs = {
     login: {
@@ -120,18 +119,16 @@ const handleComponentSwitch = (newComponentType) => {
   }
 };
 
-// Handle title section toggle from child components
 const handleToggleTitle = (shouldShow) => {
   showTitleSection.value = shouldShow;
 };
 
-// Watch for route changes
 watch(() => route.path, () => {
-  showTitleSection.value = true; // Reset title visibility on route change
-  authStore.clearError(); // Clear any previous errors
+  showTitleSection.value = true; 
+  //clear previous err
+  authStore.clearError(); 
 }, { immediate: true });
 
-// Hide title for registro (stepper) component
 watch(currentComponentType, (newType) => {
   if (newType === 'registro') {
     showTitleSection.value = false;

@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf" class="bgLoginLayout">
-    
+    <!--
     <q-header>
       <q-toolbar class="bg-white text-primary">
         <q-toolbar-title>
@@ -15,7 +15,7 @@
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
-
+    -->
     <q-page-container>
       <router-view />
     </q-page-container>+
@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import logoPnet from "assets/logo-pnet.png"
+//import logoPnet from "assets/logo-pnet.png"
 </script>
 
 <style>

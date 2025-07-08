@@ -13,7 +13,11 @@ npm install
 ```bash
 quasar dev
 ```
+if quasar not installed locally
 
+```bash
+quasar dev
+```
 
 ### Lint the files
 ```bash

@@ -113,7 +113,7 @@
         </q-form>
       </q-step>
 
-      <!-- Step 2: Verificación -->
+      <!-- Step 2: Contraseña -->
       <q-step
         :name="2"
         title="Contraseña"
@@ -121,20 +121,18 @@
         :done="step > 2"
         :header-nav="step > 2"
       >
-        <div class="text-center q-pa-lg">
-          <q-icon name="email" size="4rem" color="primary" />
-          <h6>Verificación de Email</h6>
-          <p>Hemos enviado un código de verificación a tu email.</p>
-          
+        <div v-if="showTitleSection" class="justify-left text-left items-left title-container" :key="`${title}-${subtitle}`">
+            <h5 class="logiTitle">{{ registerTitles.title }}</h5>
+            <p class="subtitle-text">{{ registerTitles.subtitle }}</p>
+        </div>
           <q-input
             outlined
             dense
             v-model="verificationCode"
-            label="Código de verificación"
-            mask="######"
+            label="Contraseña"
+            type="password"
             class="q-mt-md"
           />
-        </div>
 
         <q-stepper-navigation>
           <q-btn
@@ -211,6 +209,10 @@ const formData = ref({
   sector: null
 });
 
+const registerTitles = ref({
+    title: 'Creá tu contraseña',
+    subtitle: 'Seguí los requisitos para crearla'
+})
 // Additional step data
 const verificationCode = ref('');
 
@@ -298,7 +300,6 @@ const submitStep2 = async () => {
   });
 };
 
-// Go to login
 const goToLogin = () => {
   emit('switch-component', 'login');
 };

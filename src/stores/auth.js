@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { loginAjax, resetPasswordAjax, registerAjax } from "src/api/auth"
+import { loginAjax, resetPasswordAjax } from "src/api/auth"
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -63,9 +63,13 @@ export const useAuthStore = defineStore('auth', {
       
       try {
         await this.sleep(3000)
-        
+        //mock for test
+        let test = userData
+        /*
         const response = await registerAjax(userData)
         return response
+        */
+       return test
       } catch (error) {
         this.setError(error.message || 'Error en el registro')
         throw error
