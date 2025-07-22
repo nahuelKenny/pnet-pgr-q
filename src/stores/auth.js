@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { loginAjax, resetPasswordAjax } from "src/api/auth"
+//import { loginAjax, resetPasswordAjax, registerAjax } from "src/api/auth"
+import { loginAjax } from "src/api/auth"
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -85,8 +86,9 @@ export const useAuthStore = defineStore('auth', {
       try {
         await this.sleep(3000)
         
-        const response = await resetPasswordAjax(emailData)
-        return response
+        //const response = await resetPasswordAjax(emailData)
+        //return response
+        return emailData // Mock response for testing
       } catch (error) {
         this.setError(error.message || 'Error al enviar email de recuperación')
         throw error

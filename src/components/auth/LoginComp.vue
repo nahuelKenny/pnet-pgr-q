@@ -6,7 +6,7 @@
           outlined
           dense
           v-model="userForm.userName"
-          label="Email *"
+          label="Usuario *"
           lazy-rules
           :rules="[
             (val) => (val && val.length > 0) || 'Campo requerido',

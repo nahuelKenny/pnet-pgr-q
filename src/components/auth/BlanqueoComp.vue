@@ -69,17 +69,35 @@
 
     <!-- Success state -->
     <div v-else-if="resultType === 'success'" class="text-center q-pa-lg">
-      <q-icon name="check_circle" size="4rem" color="positive" />
-      <h6 class="q-mt-md q-mb-sm">¡Email enviado!</h6>
-      <p>Hemos enviado un enlace de recuperación a tu email.</p>
-      <p class="text-caption text-grey-6">Revisa tu bandeja de entrada y spam.</p>
-      
-      <q-btn
-        label="Volver al login"
-        color="primary"
-        class="q-mt-md btnBlanqueo"
-        @click="$emit('switch-component', 'login')"
-      />
+        <q-icon name="check_circle" size="4rem" color="positive" />
+        <h6 class="q-mt-md q-mb-sm">¡Email enviado!</h6>
+        <div class="text-left justify-left items-left">
+            <p>Te enviamos un email a <b>{{ email }}</b>  
+                donde te llegarán las instrucciones para que puedas recuperar tu contraseña.
+            </p>
+        </div>
+        <div class="row resendTimer text-left justify-left items-left">
+            <div class="col-6">
+                <h6>No te llegó el email?</h6>
+                <p></p>
+            </div>
+            <div class="col-6 text-right">
+                <h6>{{ timer }}</h6>
+            </div>
+        </div>
+        <q-btn
+            label="Reenviar enlace"
+            color="primary"
+            class="q-mt-md btnBlanqueo"
+            @click="$emit('switch-component', 'login')"
+            :disable="true"
+        />
+        <q-btn
+            label="Volver al login"
+            color="primary"
+            class="q-mt-md btnBlanqueo"
+            @click="$emit('switch-component', 'login')"
+        />
     </div>
 
     <!-- Error state -->
@@ -87,20 +105,27 @@
       <q-icon name="error" size="4rem" color="negative" />
       <h6 class="q-mt-md q-mb-sm">Error al enviar</h6>
       <p>{{ errorMessage }}</p>
-      
-      <div class="q-mt-md">
-        <q-btn
-          label="Intentar nuevamente"
-          color="primary"
-          class="q-mr-sm btnBlanqueo"
-          @click="resetForm"
-        />
-        <q-btn
-          label="Volver al login"
-          flat
-          color="primary"
-          @click="$emit('switch-component', 'login')"
-        />
+      <div class="row justify-center full-width q-col-gutter-md">
+            <div class="col-12">
+                <div class="q-mt-md">
+                    <q-btn
+                    label="Intentar nuevamente"
+                    color="primary"
+                    class="q-mr-sm btnBlanqueo"
+                    @click="resetForm"
+                    />
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="q-mt-md">
+                    <q-btn
+                    label="Volver al login"
+                    flat
+                    color="primary"
+                    @click="$emit('switch-component', 'login')"
+                    />
+                </div>
+            </div>
       </div>
     </div>
   </div>
@@ -118,7 +143,7 @@ const emit = defineEmits(['submit', 'switch-component', 'toggle-title']);
 
 // Form refs
 const blanqueoForm = ref(null);
-
+const timer = ref(120)
 // Form data
 const email = ref('');
 

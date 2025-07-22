@@ -44,6 +44,7 @@ const currentComponentType = computed(() => {
 });
 
 const contentConfig = computed(() => {
+  //should be parametrized later 
   const configs = {
     login: {
       title: 'Te damos la bienvenida',
